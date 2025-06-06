@@ -2,6 +2,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.example.project.dto.FileDTO" %>
 <%@ page import="com.example.project.dto.BoardDTO" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%
     BoardDTO dto = (BoardDTO) request.getAttribute("dto");
     List<FileDTO> fileList = (List<FileDTO>) request.getAttribute("fileList");
@@ -52,43 +53,29 @@
         <tr>
             <td>첨부파일</td>
             <td colspan="3">
-                <%
-                if (fileList != null && !fileList.isEmpty()) {
-                    for (FileDTO file : fileList) {
-                    	// Set file as an attribute to be accessible by EL
-                        pageContext.setAttribute("file", file);
-                %>
-                        <div>
-                           <a href="download.do?filename=${file.stored_file_name}&original=${file.original_file_name}">
-                                ${file.original_file_name}
-                           </a>
-                           ( ${ (file.file_size / 1024) + 1 } KB)
-                        </div>
-                <%
-                    }
-                } else {
-                %>
-                    첨부파일 없음
-                <%
-                }
-                %>
+                <c:choose>
+                    <c:when test="${not empty fileList}">
+                        <c:forEach items="${fileList}" var="file">
+                            <div>
+                               <a href="download.do?filename=${file.stored_file_name}&original=${file.original_file_name}">
+                                    ${file.original_file_name}
+                               </a>
+                               ( ${ (file.file_size / 1024) + 1 } KB)
+                            </div>
+                        </c:forEach>
+                    </c:when>
+                    <c:otherwise>
+                        첨부파일 없음
+                    </c:otherwise>
+                </c:choose>
             </td>
         </tr>
         <tr>
             <td colspan="4" align="center">
-                <%
-                String userId = (String) session.getAttribute("userId");
-                Integer userAdmin = (Integer) session.getAttribute("userAdmin");
-                // 관리자는 1, 일반 사용자는 0 또는 null
-                boolean isAdmin = (userAdmin != null && userAdmin == 1);
-
-                if (dto != null && userId != null && (userId.equals(dto.getId()) || isAdmin)) {
-                %>
+                <c:if test="${not empty sessionScope.userId and (sessionScope.userId eq dto.id or sessionScope.userAdmin eq 1)}">
                     <button type="button" onclick="location.href='edit.do?num=${dto.num}'">수정하기</button>
                     <button type="button" onclick="deletePost('${dto.num}')">삭제하기</button>
-                <%
-                }
-                %>
+                </c:if>
                 <button type="button" onclick="location.href='list.do'">목록 보기</button>
             </td>
         </tr>

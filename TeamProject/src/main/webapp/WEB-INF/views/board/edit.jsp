@@ -2,6 +2,7 @@
 <%@ page import="com.example.project.dto.BoardDTO" %>
 <%@ page import="com.example.project.dto.FileDTO" %>
 <%@ page import="java.util.List" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%
     BoardDTO dto = (BoardDTO) request.getAttribute("dto");
     List<FileDTO> fileList = (List<FileDTO>) request.getAttribute("fileList");
@@ -33,21 +34,19 @@
              <tr>
                 <td>기존 첨부파일</td>
                 <td>
-                   <%
-                   if (fileList != null && !fileList.isEmpty()) {
-                       for(FileDTO file : fileList) {
-                           pageContext.setAttribute("file", file);
-                   %>
-                           <div>
-                              ${file.original_file_name}
-                               <input type="checkbox" name="delete_file" value="${file.idx}"> 삭제
-                           </div>
-                   <%
-                       }
-                   } else {
-                       out.print("없음");
-                   }
-                   %>
+                    <c:choose>
+                        <c:when test="${not empty fileList}">
+                            <c:forEach items="${fileList}" var="file">
+                               <div>
+                                  ${file.original_file_name}
+                                   <input type="checkbox" name="delete_file" value="${file.idx}"> 삭제
+                               </div>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise>
+                           없음
+                        </c:otherwise>
+                    </c:choose>
                 </td>
             </tr>
             <tr>

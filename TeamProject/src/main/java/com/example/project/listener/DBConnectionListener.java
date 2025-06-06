@@ -21,8 +21,4 @@ public class DBConnectionListener implements ServletContextListener {
         DBUtil.init(driver, url, user, password);
     }
 
-    @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-        // Not needed
-    }
 } 

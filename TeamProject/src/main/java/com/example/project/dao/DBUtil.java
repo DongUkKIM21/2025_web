@@ -5,17 +5,25 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBUtil {
-    private static final String URL = "jdbc:h2:tcp://localhost/~/test";
-    private static final String USER = "sa";
-    private static final String PASSWORD = "1234";
-    private static final String DRIVER = "org.h2.Driver";
+
+    private static String driver;
+    private static String url;
+    private static String user;
+    private static String password;
+
+    public static void init(String driver, String url, String user, String password) {
+        DBUtil.driver = driver;
+        DBUtil.url = url;
+        DBUtil.user = user;
+        DBUtil.password = password;
+    }
 
     public static Connection getConnection() throws SQLException {
         try {
-            Class.forName(DRIVER);
-            return DriverManager.getConnection(URL, USER, PASSWORD);
+            Class.forName(driver);
+            return DriverManager.getConnection(url, user, password);
         } catch (ClassNotFoundException e) {
-            throw new SQLException("H2 JDBC Driver not found.", e);
+            throw new SQLException("JDBC Driver not found.", e);
         }
     }
 

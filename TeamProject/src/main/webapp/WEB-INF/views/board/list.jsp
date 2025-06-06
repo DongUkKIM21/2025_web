@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.example.project.dto.BoardDTO" %>
 <%@ page import="java.util.Map" %>
@@ -20,18 +21,20 @@
 
     <form method="get">
         <select name="searchField">
-            <option value="title" <% if("title".equals(searchField)) out.print("selected"); %>>제목</option>
-            <option value="content" <% if("content".equals(searchField)) out.print("selected"); %>>내용</option>
-            <option value="id" <% if("id".equals(searchField)) out.print("selected"); %>>작성자</option>
+            <option value="title" <c:if test="${map.searchField eq 'title'}">selected</c:if>>제목</option>
+            <option value="content" <c:if test="${map.searchField eq 'content'}">selected</c:if>>내용</option>
+            <option value="id" <c:if test="${map.searchField eq 'id'}">selected</c:if>>작성자</option>
         </select>
         <input type="text" name="searchWord" value="${map.searchWord}" />
         <input type="submit" value="검색하기" />
     </form>
 
     <p style="text-align:right;">
-        <% if (session.getAttribute("userId") != null) { %>
-            <a href="write.do">[글쓰기]</a>
-        <% } %>
+        <c:if test="${not empty sessionScope.userId}">
+            ${sessionScope.userName}님 환영합니다.
+            <a href="<c:url value='/board/write.do' />">[글쓰기]</a>
+            <a href="<c:url value='/member/logout.do' />">[로그아웃]</a>
+        </c:if>
     </p>
 
     <table border="1" width="90%">
@@ -42,37 +45,26 @@
             <th>작성일</th>
             <th>조회수</th>
         </tr>
-        <%
-        if (boardList == null || boardList.isEmpty()) {
-        %>
-            <tr>
-                <td colspan="5" align="center">등록된 게시물이 없습니다.</td>
-            </tr>
-        <%
-        } else {
-            int loopCounter = 0;
-            for (BoardDTO post : boardList) {
-                // Set post as an attribute to be accessible by EL
-                pageContext.setAttribute("post", post);
-                int totalCount = (Integer)map.get("totalCount");
-                int pageNum = (Integer)map.get("pageNum");
-                int pageSize = 10; // Controller's page size
-                int virtualNum = totalCount - (((pageNum - 1) * pageSize) + loopCounter);
-        %>
-            <tr>
-                <td><%= virtualNum %></td>
-                <td>
-                    <a href="view.do?num=${post.num}">${post.title}</a>
-                </td>
-                <td>${post.id}</td>
-                <td>${post.postdate}</td>
-                <td>${post.visitcount}</td>
-            </tr>
-        <%
-                loopCounter++;
-            }
-        }
-        %>
+        <c:choose>
+            <c:when test="${empty boardList}">
+                <tr>
+                    <td colspan="5" align="center">등록된 게시물이 없습니다.</td>
+                </tr>
+            </c:when>
+            <c:otherwise>
+                <c:forEach items="${boardList}" var="post" varStatus="status">
+                    <tr>
+                        <td>${map.totalCount - (map.pageSize * (map.pageNum - 1)) - status.index}</td>
+                        <td>
+                            <a href="view.do?num=${post.num}">${post.title}</a>
+                        </td>
+                        <td>${post.id}</td>
+                        <td>${post.postdate}</td>
+                        <td>${post.visitcount}</td>
+                    </tr>
+                </c:forEach>
+            </c:otherwise>
+        </c:choose>
     </table>
 
     <table width="90%">
