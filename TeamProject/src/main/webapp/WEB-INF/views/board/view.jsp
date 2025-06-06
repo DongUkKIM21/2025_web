@@ -34,7 +34,7 @@
             <td>번호</td>
             <td>${dto.num}</td>
             <td>작성자</td>
-            <td>${dto.id}</td>
+            <td>${dto.nickname}</td>
         </tr>
         <tr>
             <td>작성일</td>

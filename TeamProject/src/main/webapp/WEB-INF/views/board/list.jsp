@@ -31,9 +31,13 @@
 
     <p style="text-align:right;">
         <c:if test="${not empty sessionScope.userId}">
-            ${sessionScope.userName}님 환영합니다.
+            ${sessionScope.userNickname}님 환영합니다.
             <a href="<c:url value='/board/write.do' />">[글쓰기]</a>
+            <a href="<c:url value='/member/edit.do?id=${sessionScope.userId}' />">[정보 수정]</a>
             <a href="<c:url value='/member/logout.do' />">[로그아웃]</a>
+            <c:if test="${sessionScope.userAdmin eq 1}">
+                | <a href="<c:url value='/member/list.do' />">[회원 관리]</a>
+            </c:if>
         </c:if>
     </p>
 
@@ -58,7 +62,7 @@
                         <td>
                             <a href="view.do?num=${post.num}">${post.title}</a>
                         </td>
-                        <td>${post.id}</td>
+                        <td>${post.nickname}</td>
                         <td>${post.postdate}</td>
                         <td>${post.visitcount}</td>
                     </tr>

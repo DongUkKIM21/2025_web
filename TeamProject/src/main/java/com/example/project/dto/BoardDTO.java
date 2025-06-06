@@ -9,6 +9,7 @@ public class BoardDTO {
     private String id; // 작성자 ID
     private Timestamp postdate;
     private int visitcount;
+    private String nickname;
 
     // Getters and Setters
     public int getNum() {
@@ -57,5 +58,13 @@ public class BoardDTO {
 
     public void setVisitcount(int visitcount) {
         this.visitcount = visitcount;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 } 

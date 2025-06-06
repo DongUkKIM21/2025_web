@@ -19,25 +19,28 @@ public class BoardDAO {
      */
     public List<BoardDTO> selectListPage(Map<String, Object> map) {
         List<BoardDTO> boardList = new ArrayList<>();
-        String sql = "SELECT * FROM board ";
+        String sql = "SELECT b.*, m.nickname FROM board b JOIN member m ON b.id = m.id ";
 
         if (map.get("searchWord") != null && !map.get("searchWord").toString().isEmpty()) {
-            sql += " WHERE " + map.get("searchField") + " LIKE ? ";
+            String searchField = map.get("searchField").toString();
+            if ("id".equals(searchField)) {
+                sql += " WHERE m.nickname LIKE ? ";
+            } else {
+                sql += " WHERE b." + searchField + " LIKE ? ";
+            }
         }
 
-        sql += " ORDER BY num DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        sql += " ORDER BY b.num DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
+            int paramIndex = 1;
             if (map.get("searchWord") != null && !map.get("searchWord").toString().isEmpty()) {
-                pstmt.setString(1, "%" + map.get("searchWord") + "%");
-                pstmt.setInt(2, (int)map.get("offset"));
-                pstmt.setInt(3, (int)map.get("pageSize"));
-            } else {
-                pstmt.setInt(1, (int)map.get("offset"));
-                pstmt.setInt(2, (int)map.get("pageSize"));
+                pstmt.setString(paramIndex++, "%" + map.get("searchWord") + "%");
             }
+            pstmt.setInt(paramIndex++, (int)map.get("offset"));
+            pstmt.setInt(paramIndex, (int)map.get("pageSize"));
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while(rs.next()) {
@@ -48,6 +51,7 @@ public class BoardDAO {
                     dto.setId(rs.getString("id"));
                     dto.setPostdate(rs.getTimestamp("postdate"));
                     dto.setVisitcount(rs.getInt("visitcount"));
+                    dto.setNickname(rs.getString("nickname"));
                     boardList.add(dto);
                 }
             }
@@ -62,9 +66,15 @@ public class BoardDAO {
      */
     public int selectCount(Map<String, Object> map) {
         int totalCount = 0;
-        String sql = "SELECT COUNT(*) FROM board";
+        String sql = "SELECT COUNT(*) FROM board b ";
+        
         if (map.get("searchWord") != null && !map.get("searchWord").toString().isEmpty()) {
-            sql += " WHERE " + map.get("searchField") + " LIKE ? ";
+            String searchField = map.get("searchField").toString();
+            if ("id".equals(searchField)) {
+                sql += "JOIN member m ON b.id = m.id WHERE m.nickname LIKE ? ";
+            } else {
+                sql += " WHERE b." + searchField + " LIKE ? ";
+            }
         }
 
         try (Connection conn = DBUtil.getConnection();
@@ -132,7 +142,7 @@ public class BoardDAO {
      * 게시물 상세 보기
      */
     public BoardDTO selectView(String num) {
-        String sql = "SELECT * FROM board WHERE num=?";
+        String sql = "SELECT b.*, m.nickname FROM board b JOIN member m ON b.id = m.id WHERE b.num=?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, Integer.parseInt(num));
@@ -145,6 +155,7 @@ public class BoardDAO {
                     dto.setId(rs.getString("id"));
                     dto.setPostdate(rs.getTimestamp("postdate"));
                     dto.setVisitcount(rs.getInt("visitcount"));
+                    dto.setNickname(rs.getString("nickname"));
                     return dto;
                 }
             }
@@ -227,6 +238,22 @@ public class BoardDAO {
     }
 
     /**
+     * 관리자에 의한 회원 ID 변경 시 게시물의 회원 ID 업데이트
+     */
+    public int updateMemberIdInBoard(String oldId, String newId) {
+        String sql = "UPDATE board SET id=? WHERE id=?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, newId);
+            pstmt.setString(2, oldId);
+            return pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
      * 특정 첨부파일 삭제
      */
     public void deleteFile(String idx) {
@@ -234,6 +261,20 @@ public class BoardDAO {
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, Integer.parseInt(idx));
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 특정 회원의 모든 게시물 삭제
+     */
+    public void deletePostsByMemberId(String memberId) {
+        String sql = "DELETE FROM board WHERE id=?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, memberId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
