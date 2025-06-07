@@ -3,6 +3,7 @@
 <%@ page import="com.example.project.dto.FileDO" %>
 <%@ page import="com.example.project.dto.BoardDO" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%
     BoardDO dto = (BoardDO) request.getAttribute("dto");
     List<FileDO> fileList = (List<FileDO>) request.getAttribute("fileList");
@@ -14,12 +15,36 @@
     }
 %>
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>게시판 상세보기</title>
+<title>${dto.title} - My Community</title>
 <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/css/style.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<style>
+    body { background-color: #f9f9f9; font-family: 'Malgun Gothic', sans-serif; }
+    .view-container { max-width: 800px; margin: 20px auto; padding: 30px; background-color: #fff; border: 1px solid #ddd; }
+    .post-header .category { color: #007bff; font-weight: bold; }
+    .post-header .title { font-size: 24px; font-weight: bold; margin: 10px 0; }
+    .post-meta { display: flex; align-items: center; color: #888; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+    .post-meta .author { font-weight: bold; color: #333; }
+    .post-meta .separator { margin: 0 10px; }
+    .post-content { padding: 30px 0; min-height: 200px; font-size: 16px; line-height: 1.8; }
+    .post-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .post-actions .btn { display: inline-block; padding: 10px 20px; border: 1px solid #ccc; text-decoration: none; color: #333; margin: 0 5px; border-radius: 5px; }
+    .post-actions .btn-like { background-color: #007bff; color: white; border-color: #007bff; }
+    .attachment-box { background-color: #f9f9f9; border: 1px solid #eee; padding: 15px; margin-bottom: 20px; }
+    .attachment-box a { text-decoration: none; color: #007bff; }
+    /* Comments */
+    .comments-section { margin-top: 30px; }
+    .comment { border-bottom: 1px solid #f0f0f0; padding: 15px 0; }
+    .comment-author { font-weight: bold; }
+    .comment-date { float: right; color: #999; font-size: 13px; }
+    .comment-content { margin: 8px 0 0 0; }
+    .comment-form textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+    .comment-form .submit-wrapper { text-align: right; margin-top: 10px; }
+    .comment-form button { padding: 8px 15px; background-color: #333; color: white; border: none; border-radius: 5px; cursor: pointer; }
+</style>
 <script>
     function deletePost(num) {
         if (confirm("정말로 삭제하시겠습니까?")) {
@@ -35,9 +60,7 @@
                 data: { num: "${dto.num}" },
                 dataType: "json",
                 success: function(data){
-                    // 서버로부터 받은 최신 추천 수로 화면을 업데이트합니다.
                     $("#likeCount").text(data.likeCount);
-                    // 서버가 보내준 메시지를 알림창으로 띄웁니다.
                     alert(data.message);
                 },
                 error: function(){
@@ -49,97 +72,81 @@
 </script>
 </head>
 <body>
-    <h2>게시판 상세보기</h2>
-    <table border="1" width="90%">
-        <tr>
-            <td>번호</td>
-            <td>${dto.num}</td>
-            <td>작성자</td>
-            <td>${dto.nickname}</td>
-        </tr>
-        <tr>
-            <td>작성일</td>
-            <td>${dto.postdate}</td>
-            <td>조회수</td>
-            <td>${dto.visitcount}</td>
-        </tr>
-        <tr>
-            <td>제목</td>
-            <td colspan="3">${dto.title}</td>
-        </tr>
-        <tr>
-            <td>내용</td>
-            <td colspan="3" height="100">
-                ${dto.content}
-            </td>
-        </tr>
-        <tr>
-            <td>첨부파일</td>
-            <td colspan="3">
-                <c:choose>
-                    <c:when test="${not empty fileList}">
-                        <c:forEach items="${fileList}" var="file">
-                            <div>
-                               <a href="download.do?filename=${file.stored_file_name}&original=${file.original_file_name}">
-                                    ${file.original_file_name}
-                               </a>
-                               ( ${ (file.file_size / 1024) + 1 } KB)
-                            </div>
-                        </c:forEach>
-                    </c:when>
-                    <c:otherwise>
-                        첨부파일 없음
-                    </c:otherwise>
-                </c:choose>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="4" align="center">
-                 <button type="button" id="likeBtn">추천</button>
-                 <span id="likeCount">${dto.like_count}</span>
-                <c:if test="${not empty sessionScope.userId and (sessionScope.userId eq dto.id or sessionScope.userAdmin eq 1)}">
-                    <button type="button" onclick="location.href='edit.do?num=${dto.num}'">수정하기</button>
-                    <button type="button" onclick="deletePost('${dto.num}')">삭제하기</button>
-                </c:if>
-                <button type="button" onclick="location.href='list.do'">목록 보기</button>
-            </td>
-        </tr>
-    </table>
-
-    <%-- 댓글 기능 추가 --%>
-    <div style="width: 90%; margin-top: 20px;">
-        <h4>댓글</h4>
-        
-        <!-- 댓글 목록 -->
-        <c:choose>
-            <c:when test="${not empty commentList}">
-                <c:forEach items="${commentList}" var="comment">
-                    <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
-                        <strong>${comment.nickname}</strong> (${comment.id})
-                        <span style="float: right; color: #888; font-size: 0.9em;">
-                            <c:out value="${comment.postdate}"/>
-                            <c:if test="${not empty sessionScope.userId and (sessionScope.userId eq comment.id or sessionScope.userAdmin eq 1)}">
-                                 <a href="deleteComment.do?cno=${comment.cno}&bno=${dto.num}" style="margin-left: 10px; text-decoration: none; color: red;">[삭제]</a>
-                            </c:if>
-                        </span>
-                        <p style="margin: 5px 0;">${comment.content}</p>
+    <div class="view-container">
+        <div class="post-header">
+            <span class="category">[${dto.category}]</span>
+            <h1 class="title">${dto.title}</h1>
+        </div>
+        <div class="post-meta">
+            <span class="author">${dto.nickname}</span>
+            <span class="separator">|</span>
+            <span class="date"><fmt:formatDate value="${dto.postdate}" pattern="yyyy.MM.dd HH:mm" /></span>
+            <span class="separator">|</span>
+            <span class="views">조회 ${dto.visitcount}</span>
+            <span class="separator">|</span>
+            <span class="likes">추천 <span id="likeCount">${dto.like_count}</span></span>
+        </div>
+        <div class="post-content">
+            <c:if test="${not empty fileList}">
+                <div class="attachment-box">
+                <c:forEach items="${fileList}" var="file">
+                    <div>
+                       <a href="download.do?filename=${file.stored_file_name}&original=${file.original_file_name}">
+                            ${file.original_file_name}
+                       </a>
+                       ( <fmt:formatNumber value="${file.file_size / 1024}" maxFractionDigits="0"/> KB)
                     </div>
                 </c:forEach>
-            </c:when>
-            <c:otherwise>
-                <p>작성된 댓글이 없습니다.</p>
-            </c:otherwise>
-        </c:choose>
+                </div>
+            </c:if>
+            ${dto.content}
+        </div>
+        <div class="post-actions">
+            <div>
+                <c:if test="${not empty sessionScope.userId and (sessionScope.userId eq dto.id or sessionScope.userAdmin eq 1)}">
+                    <a href="edit.do?num=${dto.num}" class="btn">수정</a>
+                    <a href="#" onclick="deletePost('${dto.num}')" class="btn">삭제</a>
+                </c:if>
+            </div>
+            <div>
+                <a href="#" id="likeBtn" class="btn btn-like">추천</a>
+                <a href="list.do" class="btn">목록</a>
+            </div>
+        </div>
+        
+        <div class="comments-section">
+            <h4>댓글 <c:if test="${not empty commentList}">${commentList.size()}</c:if></h4>
+            
+            <c:choose>
+                <c:when test="${not empty commentList}">
+                    <c:forEach items="${commentList}" var="comment">
+                        <div class="comment">
+                            <strong class="comment-author">${comment.nickname}</strong>
+                            <span class="comment-date">
+                                <fmt:formatDate value="${comment.postdate}" pattern="yyyy.MM.dd HH:mm"/>
+                                <c:if test="${not empty sessionScope.userId and (sessionScope.userId eq comment.id or sessionScope.userAdmin eq 1)}">
+                                     <a href="deleteComment.do?cno=${comment.cno}&bno=${dto.num}" style="margin-left: 10px; text-decoration: none; color: #dc3545;">삭제</a>
+                                </c:if>
+                            </span>
+                            <p class="comment-content">${comment.content}</p>
+                        </div>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <p>작성된 댓글이 없습니다.</p>
+                </c:otherwise>
+            </c:choose>
 
-        <!-- 댓글 작성 폼 -->
-        <c:if test="${not empty sessionScope.userId}">
-            <form action="addComment.do" method="post" style="margin-top: 20px;">
-                <input type="hidden" name="bno" value="${dto.num}">
-                <textarea name="content" rows="3" style="width: 100%;" placeholder="댓글을 입력하세요" required></textarea>
-                <br>
-                <button type="submit" style="float: right;">등록</button>
-            </form>
-        </c:if>
+            <c:if test="${not empty sessionScope.userId}">
+                <form action="addComment.do" method="post" class="comment-form">
+                    <input type="hidden" name="bno" value="${dto.num}">
+                    <textarea name="content" rows="4" placeholder="댓글을 입력하세요..." required></textarea>
+                    <div class="submit-wrapper">
+                        <button type="submit">등록</button>
+                    </div>
+                </form>
+            </c:if>
+        </div>
     </div>
 </body>
 </html> 
