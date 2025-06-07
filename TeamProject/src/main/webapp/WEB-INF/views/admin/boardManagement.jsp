@@ -69,7 +69,7 @@
             <a class="nav-link active" href="<c:url value="/board/management.do"/>">게시물 관리</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#">댓글 관리</a>
+            <a class="nav-link" href="<c:url value="/board/commentManagement.do"/>">댓글 관리</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="<c:url value="/member/list.do"/>">회원 관리</a>

@@ -9,8 +9,15 @@ public class CommentDO {
     private String nickname;
     private String content;
     private Timestamp postdate;
+    private String board_title;
 
     // Getters and Setters
+    public String getBoard_title() {
+        return board_title;
+    }
+    public void setBoard_title(String board_title) {
+        this.board_title = board_title;
+    }
     public int getCno() {
         return cno;
     }

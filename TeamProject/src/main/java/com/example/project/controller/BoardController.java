@@ -82,6 +82,7 @@ public class BoardController extends HttpServlet {
                 case "deleteComment.do": deleteComment(req, resp); break;
                 case "like.do": like(req, resp); break;
                 case "management.do": management(req, resp); break;
+                case "commentManagement.do": commentManagement(req, resp); break;
                 default: list(req, resp); break;
             }
         } catch (Exception e) {
@@ -345,12 +346,17 @@ public class BoardController extends HttpServlet {
     }
 
     private void deleteComment(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        int cno = Integer.parseInt(req.getParameter("cno"));
-        int bno = Integer.parseInt(req.getParameter("bno"));
+        String bno = req.getParameter("bno");
+        String cno = req.getParameter("cno");
+        String redirect = req.getParameter("redirect");
+
+        commentDao.deleteComment(Integer.parseInt(cno));
         
-        commentDao.deleteComment(cno);
-        
-        resp.sendRedirect("view.do?num=" + bno);
+        if ("admin".equals(redirect)) {
+            resp.sendRedirect(req.getContextPath() + "/board/commentManagement.do");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/board/view.do?num=" + bno);
+        }
     }
 
     private void like(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -405,5 +411,19 @@ public class BoardController extends HttpServlet {
         List<BoardDO> boardList = dao.selectAllPostsForAdmin();
         req.setAttribute("boardList", boardList);
         req.getRequestDispatcher("/WEB-INF/views/admin/boardManagement.jsp").forward(req, resp);
+    }
+
+    private void commentManagement(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+
+        // 관리자 권한 확인
+        if (session == null || session.getAttribute("userAdmin") == null || (int)session.getAttribute("userAdmin") != 1) {
+            resp.sendRedirect(req.getContextPath() + "/board/list.do");
+            return;
+        }
+
+        List<CommentDO> commentList = commentDao.selectAllCommentsForAdmin();
+        req.setAttribute("commentList", commentList);
+        req.getRequestDispatcher("/WEB-INF/views/admin/commentManagement.jsp").forward(req, resp);
     }
 } 

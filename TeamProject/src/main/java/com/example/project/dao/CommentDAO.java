@@ -66,4 +66,34 @@ public class CommentDAO {
         }
         return 0;
     }
+    
+    /**
+     * 관리자용: 모든 댓글 목록 조회
+     */
+    public List<CommentDO> selectAllCommentsForAdmin() {
+        List<CommentDO> comments = new ArrayList<>();
+        String sql = "SELECT c.*, b.title as board_title " +
+                     "FROM comment c " +
+                     "JOIN board b ON c.bno = b.num " +
+                     "ORDER BY c.cno DESC";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                CommentDO dto = new CommentDO();
+                dto.setCno(rs.getInt("cno"));
+                dto.setBno(rs.getInt("bno"));
+                dto.setId(rs.getString("id"));
+                dto.setNickname(rs.getString("nickname"));
+                dto.setContent(rs.getString("content"));
+                dto.setPostdate(rs.getTimestamp("postdate"));
+                dto.setBoard_title(rs.getString("board_title")); // 게시물 제목 설정
+                comments.add(dto);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return comments;
+    }
 } 
