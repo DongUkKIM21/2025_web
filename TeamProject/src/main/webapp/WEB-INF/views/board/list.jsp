@@ -31,15 +31,18 @@
     }
     .container {
         display: flex;
+        justify-content: space-between;
         margin-top: 20px;
+        padding: 0 20px;
     }
     .main-content {
         flex-grow: 1;
-        width: 75%;
+        width: 100%;
     }
     .sidebar {
-        width: 250px; /* 너비 고정으로 변경 */
-        margin-left: 20px;
+        width: 280px;
+        margin-left: 30px;
+        flex-shrink: 0;
     }
     .tabs {
         border-bottom: 1px solid #ddd;
@@ -74,12 +77,12 @@
         padding: 15px;
     }
     .login-box p, .user-box p {
-        margin: 5px 0; /* 간격 줄여서 더 작게 보이도록 */
+        margin: 5px 0;
     }
     .login-box input[type="text"], .login-box input[type="password"] {
-        width: 100%; /* 너비 100%로 변경 */
+        width: 100%;
         padding: 8px;
-        box-sizing: border-box; /* 패딩, 테두리 포함 너비 계산 */
+        box-sizing: border-box;
     }
     .login-box input[type="submit"] {
         width: 100%;
@@ -195,15 +198,19 @@
         <aside class="sidebar">
             <c:choose>
                 <c:when test="${not empty sessionScope.userId}">
-                    <div class="user-box">
-                        <p><strong>${sessionScope.userNickname}</strong>님, 환영합니다.</p>
-                        <p>
-                            <a href="<c:url value='/member/edit.do?id=${sessionScope.userId}' />">정보 수정</a> | 
-                            <a href="<c:url value='/member/logout.do' />">로그아웃</a>
-                        </p>
-                        <c:if test="${sessionScope.userAdmin eq 1}">
-                            <p><a href="<c:url value='/member/list.do' />">회원 관리</a></p>
-                        </c:if>
+                    <div class="user-box" style="padding: 15px; text-align: left;">
+                        <p style="margin-bottom: 10px;"><strong>${sessionScope.userNickname}</strong>님, 환영합니다.</p>
+                        
+                        <div>
+                            <a href="<c:url value='/member/edit.do?id=${sessionScope.userId}' />" style="text-decoration: none; color: #6c757d;">정보 수정</a>
+                            <span style="color: #ccc;">|</span>
+                            <a href="<c:url value='/member/logout.do' />" style="text-decoration: none; color: #6c757d;">로그아웃</a>
+                            
+                            <c:if test="${sessionScope.userAdmin == 1}">
+                                <span style="color: #ccc;">|</span>
+                                <a href="<c:url value='/member/list.do' />" style="text-decoration: none; color: #dc3545; font-weight: bold;">회원 관리</a>
+                            </c:if>
+                        </div>
                     </div>
                 </c:when>
                 <c:otherwise>
