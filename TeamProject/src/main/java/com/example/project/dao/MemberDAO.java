@@ -7,14 +7,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.project.dto.MemberDTO;
+import com.example.project.dto.MemberDO;
 
 public class MemberDAO {
 
     /**
      * 회원가입
      */
-    public int insertMember(MemberDTO dto) {
+    public int insertMember(MemberDO dto) {
         String sql = "INSERT INTO member (id, pass, name, email, nickname) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -33,7 +33,7 @@ public class MemberDAO {
     /**
      * 로그인 (회원 인증)
      */
-    public MemberDTO getMember(String id, String pass) {
+    public MemberDO getMember(String id, String pass) {
         String sql = "SELECT * FROM member WHERE id=? AND pass=?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -41,7 +41,7 @@ public class MemberDAO {
             pstmt.setString(2, pass);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    MemberDTO dto = new MemberDTO();
+                    MemberDO dto = new MemberDO();
                     dto.setId(rs.getString("id"));
                     dto.setName(rs.getString("name"));
                     dto.setNickname(rs.getString("nickname"));
@@ -118,14 +118,14 @@ public class MemberDAO {
     /**
      * ID로 회원 정보 조회
      */
-    public MemberDTO getMemberById(String id) {
+    public MemberDO getMemberById(String id) {
         String sql = "SELECT * FROM member WHERE id=?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    MemberDTO dto = new MemberDTO();
+                    MemberDO dto = new MemberDO();
                     dto.setId(rs.getString("id"));
                     dto.setName(rs.getString("name"));
                     dto.setNickname(rs.getString("nickname"));
@@ -144,14 +144,14 @@ public class MemberDAO {
     /**
      * (관리자) 모든 회원 목록 조회
      */
-    public List<MemberDTO> selectMembers() {
-        List<MemberDTO> memberList = new ArrayList<>();
+    public List<MemberDO> selectMembers() {
+        List<MemberDO> memberList = new ArrayList<>();
         String sql = "SELECT * FROM member ORDER BY regidate DESC";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
-                MemberDTO dto = new MemberDTO();
+                MemberDO dto = new MemberDO();
                 dto.setId(rs.getString("id"));
                 dto.setName(rs.getString("name"));
                 dto.setNickname(rs.getString("nickname"));
@@ -169,7 +169,7 @@ public class MemberDAO {
     /**
      * 회원 정보 수정
      */
-    public int updateMember(MemberDTO dto) {
+    public int updateMember(MemberDO dto) {
         String sql = "UPDATE member SET pass=?, name=?, nickname=?, email=? WHERE id=?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -188,7 +188,7 @@ public class MemberDAO {
     /**
      * (관리자) 회원 정보 수정 (ID 포함)
      */
-    public int adminUpdateMember(String oldId, MemberDTO dto) {
+    public int adminUpdateMember(String oldId, MemberDO dto) {
         String sql;
         // 비밀번호가 제공되었는지 확인
         boolean isPasswordProvided = dto.getPass() != null && !dto.getPass().isEmpty();

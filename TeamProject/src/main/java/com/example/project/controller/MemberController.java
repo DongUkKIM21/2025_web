@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.example.project.dao.BoardDAO;
 import com.example.project.dao.MemberDAO;
-import com.example.project.dto.MemberDTO;
+import com.example.project.dto.MemberDO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -106,7 +106,7 @@ public class MemberController extends HttpServlet {
         } else { // POST
             String id = req.getParameter("id");
             String pass = req.getParameter("pass");
-            MemberDTO member = dao.getMember(id, pass);
+            MemberDO member = dao.getMember(id, pass);
 
             if (member != null) {
                 HttpSession session = req.getSession();
@@ -146,7 +146,7 @@ public class MemberController extends HttpServlet {
                 req.getRequestDispatcher("/WEB-INF/views/member/joinForm.jsp").forward(req, resp);
                 return;
             }
-            MemberDTO dto = new MemberDTO();
+            MemberDO dto = new MemberDO();
             dto.setId(id);
             dto.setPass(req.getParameter("pass"));
             dto.setName(req.getParameter("name"));
@@ -176,7 +176,7 @@ public class MemberController extends HttpServlet {
             return;
         }
         
-        List<MemberDTO> memberList = dao.selectMembers();
+        List<MemberDO> memberList = dao.selectMembers();
         req.setAttribute("memberList", memberList);
         req.getRequestDispatcher("/WEB-INF/views/member/memberList.jsp").forward(req, resp);
     }
@@ -199,7 +199,7 @@ public class MemberController extends HttpServlet {
 
         if ("GET".equalsIgnoreCase(req.getMethod())) {
             String idToEdit = req.getParameter("id");
-            MemberDTO memberToEdit = dao.getMemberById(idToEdit);
+            MemberDO memberToEdit = dao.getMemberById(idToEdit);
             req.setAttribute("member", memberToEdit);
             req.getRequestDispatcher("/WEB-INF/views/member/adminEditForm.jsp").forward(req, resp);
         } else { // POST
@@ -245,7 +245,7 @@ public class MemberController extends HttpServlet {
             return;
         }
         String loginUserId = (String) session.getAttribute("userId");
-        MemberDTO member = dao.getMemberById(loginUserId);
+        MemberDO member = dao.getMemberById(loginUserId);
         req.setAttribute("member", member);
         
         session.setAttribute("userId", member.getId());
@@ -276,7 +276,7 @@ public class MemberController extends HttpServlet {
 
         boardDao.updateMemberIdInBoard(currentId, newId);
         
-        MemberDTO currentMember = dao.getMemberById(currentId);
+        MemberDO currentMember = dao.getMemberById(currentId);
         currentMember.setId(newId);
         currentMember.setPass("");
 
@@ -378,7 +378,7 @@ public class MemberController extends HttpServlet {
 
         boardDao.updateMemberIdInBoard(originalId, newId);
         
-        MemberDTO member = dao.getMemberById(originalId);
+        MemberDO member = dao.getMemberById(originalId);
         member.setId(newId);
         member.setPass("");
 

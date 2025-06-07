@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import com.example.project.dto.FileDTO;
+import com.example.project.dto.FileDO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,72 +30,77 @@ public class FileUtil {
     /**
      * 파일 업로드 처리
      */
-    public static List<FileDTO> uploadFiles(HttpServletRequest req) throws IOException, ServletException {
-        List<FileDTO> fileList = new ArrayList<>();
-        String uploadPath = req.getServletContext().getRealPath("/") + UPLOAD_DIR;
-        
+    public static List<FileDO> uploadFiles(HttpServletRequest req) throws ServletException, IOException {
+        List<FileDO> fileList = new ArrayList<>();
+        String uploadPath = req.getServletContext().getRealPath("/uploads");
         File uploadDir = new File(uploadPath);
         if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
+            uploadDir.mkdir();
         }
 
         Collection<Part> parts = req.getParts();
         for (Part part : parts) {
-            if (part.getSubmittedFileName() != null && !part.getSubmittedFileName().isEmpty()) {
-                String originalFileName = part.getSubmittedFileName();
-                String storedFileName = createStoredFileName(originalFileName);
+            String fileName = getFileName(part);
+            if (fileName != null && !fileName.isEmpty()) {
+                String now = new SimpleDateFormat("yyyyMMdd_HmsS").format(new Date());
+                String ext = fileName.substring(fileName.lastIndexOf("."));
+                String newFileName = now + ext;
 
-                part.write(uploadPath + File.separator + storedFileName);
+                part.write(uploadPath + File.separator + newFileName);
 
-                FileDTO fileDto = new FileDTO();
-                fileDto.setOriginal_file_name(originalFileName);
-                fileDto.setStored_file_name(storedFileName);
-                fileDto.setFile_size(part.getSize());
+                FileDO fileDto = new FileDO();
+                fileDto.setOriginal_file_name(fileName);
+                fileDto.setStored_file_name(newFileName);
                 fileList.add(fileDto);
             }
         }
         return fileList;
     }
 
+    private static String getFileName(Part part) {
+        for (String content : part.getHeader("content-disposition").split(";")) {
+            if (content.trim().startsWith("filename")) {
+                return content.substring(content.indexOf('=') + 1).trim().replace("\"", "");
+            }
+        }
+        return null;
+    }
+
     /**
      * 파일 다운로드 처리
      */
-    public static void download(HttpServletRequest req, HttpServletResponse resp, String storedFileName, String originalFileName) throws IOException {
-        String uploadPath = req.getServletContext().getRealPath("/") + UPLOAD_DIR;
+    public static void download(HttpServletRequest req, HttpServletResponse resp, String storedFileName, String originalFileName) {
+        String uploadPath = req.getServletContext().getRealPath("/uploads");
         File file = new File(uploadPath, storedFileName);
 
-        if (file.exists()) {
-            // 원본 파일 이름으로 인코딩 설정
-            originalFileName = URLEncoder.encode(originalFileName, "UTF-8").replaceAll("\\+", "%20");
-            
-            resp.setContentType("application/octet-stream");
-            resp.setContentLength((int)file.length());
-            resp.setHeader("Content-Disposition", "attachment; filename=\"" + originalFileName + "\"");
+        try (InputStream in = new FileInputStream(file);
+             OutputStream out = resp.getOutputStream()) {
 
-            try (InputStream in = new FileInputStream(file);
-                 OutputStream out = resp.getOutputStream()) {
-                byte[] buffer = new byte[4096];
-                int bytesRead = -1;
-                while ((bytesRead = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, bytesRead);
-                }
+            resp.reset();
+            resp.setContentType("application/octet-stream");
+            resp.setHeader("Content-Disposition", "attachment; filename=\"" + new String(originalFileName.getBytes("UTF-8"), "ISO-8859-1") + "\"");
+            resp.setHeader("Content-Length", String.valueOf(file.length()));
+
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
             }
-        } else {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     /**
      * 서버에 저장된 파일 삭제
      */
-    public static void deleteFile(HttpServletRequest req, String storedFileName) throws IOException {
-        String uploadPath = req.getServletContext().getRealPath("/") + UPLOAD_DIR;
+    public static void deleteFile(HttpServletRequest req, String filename) {
+        String uploadPath = req.getServletContext().getRealPath("/uploads");
+        Path filePath = Paths.get(uploadPath, filename);
         try {
-            Files.deleteIfExists(Paths.get(uploadPath, storedFileName));
+            Files.deleteIfExists(filePath);
         } catch (IOException e) {
-            System.err.println("File deletion failed: " + e.getMessage());
-            // 예외를 다시 던져서 호출 측에서 트랜잭션 롤백 등을 처리하도록 할 수 있음
-            throw e; 
+            System.out.println("파일 삭제 중 오류 발생: " + e.getMessage());
         }
     }
 
