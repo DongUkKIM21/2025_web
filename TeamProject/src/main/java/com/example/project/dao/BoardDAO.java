@@ -413,4 +413,35 @@ public class BoardDAO {
         }
         return fileDto;
     }
+
+    /**
+     * 관리자용: 모든 게시물 목록 조회
+     */
+    public List<BoardDO> selectAllPostsForAdmin() {
+        List<BoardDO> bbs = new ArrayList<>();
+        String query = "SELECT b.*, m.nickname FROM board b JOIN member m ON b.id = m.id ORDER BY b.num DESC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement psmt = conn.prepareStatement(query);
+             ResultSet rs = psmt.executeQuery()) {
+
+            while (rs.next()) {
+                BoardDO dto = new BoardDO();
+                dto.setNum(rs.getInt("num"));
+                dto.setTitle(rs.getString("title"));
+                dto.setContent(rs.getString("content"));
+                dto.setPostdate(rs.getTimestamp("postdate"));
+                dto.setId(rs.getString("id"));
+                dto.setNickname(rs.getString("nickname"));
+                dto.setVisitcount(rs.getInt("visitcount"));
+                dto.setLike_count(rs.getInt("like_count"));
+                dto.setCategory(rs.getString("category"));
+                bbs.add(dto);
+            }
+        } catch (Exception e) {
+            System.out.println("관리자 게시물 조회 중 예외 발생");
+            e.printStackTrace();
+        }
+        return bbs;
+    }
 } 

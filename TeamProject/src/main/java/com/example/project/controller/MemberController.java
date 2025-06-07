@@ -179,7 +179,7 @@ public class MemberController extends HttpServlet {
         
         List<MemberDO> memberList = dao.selectMembers();
         req.setAttribute("memberList", memberList);
-        req.getRequestDispatcher("/WEB-INF/views/member/memberList.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/member/adminMemberList.jsp").forward(req, resp);
     }
     
     private void adminEdit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

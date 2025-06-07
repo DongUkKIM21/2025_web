@@ -81,6 +81,7 @@ public class BoardController extends HttpServlet {
                 case "addComment.do": addComment(req, resp); break;
                 case "deleteComment.do": deleteComment(req, resp); break;
                 case "like.do": like(req, resp); break;
+                case "management.do": management(req, resp); break;
                 default: list(req, resp); break;
             }
         } catch (Exception e) {
@@ -390,5 +391,19 @@ public class BoardController extends HttpServlet {
         
         String json = String.format("{\"status\": \"%s\", \"message\": \"%s\", \"likeCount\": %d}", status, message, likeCount);
         resp.getWriter().write(json);
+    }
+
+    private void management(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+
+        // 관리자 권한 확인
+        if (session == null || session.getAttribute("userAdmin") == null || (int)session.getAttribute("userAdmin") != 1) {
+            resp.sendRedirect(req.getContextPath() + "/board/list.do");
+            return;
+        }
+
+        List<BoardDO> boardList = dao.selectAllPostsForAdmin();
+        req.setAttribute("boardList", boardList);
+        req.getRequestDispatcher("/WEB-INF/views/admin/boardManagement.jsp").forward(req, resp);
     }
 } 

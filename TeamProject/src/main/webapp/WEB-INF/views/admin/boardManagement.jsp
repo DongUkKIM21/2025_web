@@ -6,7 +6,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>회원 관리</title>
+<title>게시물 관리</title>
 
 <!-- Bootstrap 5 CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -66,59 +66,61 @@
     <h1 class="sidebar-header">서비스 관리자</h1>
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a class="nav-link" href="#">게시물 관리</a>
+            <a class="nav-link active" href="<c:url value="/board/management.do"/>">게시물 관리</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="#">댓글 관리</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link active" href="<c:url value="/member/list.do"/>">회원 관리</a>
+            <a class="nav-link" href="<c:url value="/member/list.do"/>">회원 관리</a>
         </li>
     </ul>
 </div>
 
 <div class="main-content">
     <div class="container-fluid">
-        <h2>회원 관리</h2>
+        <h2>게시물 관리</h2>
         <div class="card">
             <div class="card-header">
-                회원 관리 게시판
+                게시물 관리 대시보드
             </div>
             <div class="card-body">
-                <table id="memberTable" class="table table-striped" style="width:100%">
+                <table id="boardTable" class="table table-striped" style="width:100%">
                     <thead>
                         <tr>
-                            <th>유저 ID</th>
-                            <th>이름</th>
-                            <th>닉네임</th>
-                            <th>이메일</th>
-                            <th>가입일</th>
+                            <th>번호</th>
+                            <th>카테고리</th>
+                            <th>제목</th>
+                            <th>작성자</th>
+                            <th>작성일</th>
+                            <th>조회수</th>
+                            <th>추천수</th>
                             <th>관리</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach items="${memberList}" var="member">
+                        <c:forEach items="${boardList}" var="board">
                             <tr>
-                                <td>${member.id}</td>
-                                <td>${member.name}</td>
-                                <td>${member.nickname}</td>
-                                <td>${member.email}</td>
+                                <td>${board.num}</td>
+                                <td>${board.category}</td>
+                                <td><a href="<c:url value="/board/view.do?num=${board.num}"/>" target="_blank">${board.title}</a></td>
+                                <td>${board.nickname}</td>
                                 <td>
-                                    <c:if test="${not empty member.regidate}">
-                                        <fmt:formatDate value="${member.regidate}" pattern="yyyy.MM.dd HH:mm" />
+                                    <c:if test="${not empty board.postdate}">
+                                        <fmt:formatDate value="${board.postdate}" pattern="yyyy.MM.dd HH:mm" />
                                     </c:if>
                                 </td>
+                                <td>${board.visitcount}</td>
+                                <td>${board.like_count}</td>
                                 <td>
-                                    <c:if test="${member.admin != 1}">
-                                        <a href="adminEdit.do?id=${member.id}" class="btn btn-primary btn-sm">수정</a>
-                                        <a href="#" onclick="confirmDelete('${member.id}', '${member.nickname}')" class="btn btn-danger btn-sm">삭제</a>
-                                    </c:if>
+                                    <a href="<c:url value="/board/edit.do?num=${board.num}"/>" class="btn btn-primary btn-sm">수정</a>
+                                    <a href="#" onclick="confirmDelete('${board.num}', '${board.title}')" class="btn btn-danger btn-sm">삭제</a>
                                 </td>
                             </tr>
                         </c:forEach>
                     </tbody>
                 </table>
-                 <a href="<c:url value="/board/list.do"/>" class="btn btn-secondary mt-3">게시판으로 돌아가기</a>
+                 <a href="<c:url value="/board/list.do"/>" class="btn btn-secondary mt-3">메인 게시판으로 돌아가기</a>
             </div>
         </div>
     </div>
@@ -141,19 +143,20 @@
 <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.colVis.min.js"></script>
 
 <script>
-    function confirmDelete(id, nickname) {
-        if (confirm("'" + nickname + "' 회원을 정말로 삭제하시겠습니까? 관련 게시물도 모두 삭제됩니다.")) {
-            location.href = 'delete.do?id=' + id;
+    function confirmDelete(num, title) {
+        if (confirm("게시물 '" + title + "' (을)를 정말로 삭제하시겠습니까?")) {
+            location.href = '<c:url value="/board/delete.do?num="/>' + num;
         }
     }
 
     $(document).ready(function() {
-        $('#memberTable').DataTable({
+        $('#boardTable').DataTable({
             layout: {
                 topStart: {
                     buttons: ['copy', 'csv', 'excel', 'pdf', 'print', 'colvis']
                 }
-            }
+            },
+            order: [[ 0, 'desc' ]] // 0번째 컬럼(번호)을 기준으로 내림차순 정렬
         });
     });
 </script>
