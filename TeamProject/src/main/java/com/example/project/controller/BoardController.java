@@ -377,7 +377,7 @@ public class BoardController extends HttpServlet {
                 break;
             default: // 실패
                 status = "error";
-                message = "오류가 발생했습니다.";
+                message = "회원만 추천 가능합니다.";
                 break;
         }
         

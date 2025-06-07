@@ -18,6 +18,7 @@
         <p>
             <input type="submit" value="로그인">
             <a href="join.do">회원가입</a>
+            <a href="${pageContext.request.contextPath}/board/list.do">게시판 가기</a>
         </p>
     </form>
 </body>
