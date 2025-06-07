@@ -130,6 +130,13 @@ public class BoardController extends HttpServlet {
         map.put("totalCount", totalCount);
         map.put("pageNum", pageNum);
 
+        // 세션에서 로그인 에러 메시지 확인 후 request에 저장
+        HttpSession session = req.getSession(false);
+        if (session != null && session.getAttribute("loginError") != null) {
+            req.setAttribute("loginError", session.getAttribute("loginError"));
+            session.removeAttribute("loginError"); // 메시지를 한 번만 보여주기 위해 세션에서 제거
+        }
+
         req.setAttribute("boardList", boardList);
         req.setAttribute("map", map);
 

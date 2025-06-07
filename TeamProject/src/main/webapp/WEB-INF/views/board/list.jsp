@@ -22,6 +22,24 @@
     .category-menu li a { display: block; padding: 10px; border-bottom: 1px solid #ddd; text-decoration: none; color: #333; }
     .category-menu li a.active { font-weight: bold; color: #03c75a; }
     .board-content { flex-grow: 1; }
+    
+    /* 추가된 스타일 */
+    .user-info-area {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-bottom: 20px;
+        text-align: right;
+    }
+    .login-form-box {
+        border: 1px solid #ddd;
+        padding: 15px;
+        float: right;
+        width: 250px;
+        margin-left: 20px;
+    }
+    .login-form-box p {
+        margin: 5px 0;
+    }
 </style>
 </head>
 <body>
@@ -39,33 +57,34 @@
         <div class="board-content">
             <h2>게시판 목록 <c:if test="${not empty category}">- ${category}</c:if></h2>
 
-            <form method="get">
-                <table border="1" width="90%">
-                    <tr>
-                        <td align="center">
-                            <select name="searchField">
-                                <option value="title">제목</option>
-                                <option value="content">내용</option>
-                                <option value="nickname">작성자</option>
-                            </select>
-                            <input type="text" name="searchWord" value="${map.searchWord}" />
-                            <input type="submit" value="검색하기" />
-                        </td>
-                    </tr>
-                </table>
-            </form>
-
-            <p style="text-align:right;">
-                <c:if test="${not empty sessionScope.userId}">
-                    ${sessionScope.userNickname}님 환영합니다.
-                    <a href="<c:url value='/board/write.do' />">[글쓰기]</a>
-                    <a href="<c:url value='/member/edit.do?id=${sessionScope.userId}' />">[정보 수정]</a>
-                    <a href="<c:url value='/member/logout.do' />">[로그아웃]</a>
-                    <c:if test="${sessionScope.userAdmin eq 1}">
-                        | <a href="<c:url value='/member/list.do' />">[회원 관리]</a>
-                    </c:if>
-                </c:if>
-            </p>
+            <div class="user-info-area">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.userId}">
+                        ${sessionScope.userNickname}님 환영합니다.
+                        <a href="<c:url value='/board/write.do' />">[글쓰기]</a>
+                        <a href="<c:url value='/member/edit.do?id=${sessionScope.userId}' />">[정보 수정]</a>
+                        <a href="<c:url value='/member/logout.do' />">[로그아웃]</a>
+                        <c:if test="${sessionScope.userAdmin eq 1}">
+                            | <a href="<c:url value='/member/list.do' />">[회원 관리]</a>
+                        </c:if>
+                    </c:when>
+                    <c:otherwise>
+                        <form action="<c:url value='/member/login.do' />" method="post" class="login-form-box">
+                            <p>
+                                아이디: <input type="text" name="id" required style="width: 150px;">
+                            </p>
+                            <p>
+                                패스워드: <input type="password" name="pass" required style="width: 150px;">
+                            </p>
+                            <p style="color:red; text-align: center;">${loginError}</p>
+                            <p style="text-align: center;">
+                                <input type="submit" value="로그인">
+                                <a href="<c:url value='/member/join.do' />">회원가입</a>
+                            </p>
+                        </form>
+                    </c:otherwise>
+                </c:choose>
+            </div>
 
             <table border="1" width="90%">
                 <tr>
@@ -97,16 +116,25 @@
                 </c:choose>
             </table>
 
-            <table border="1" width="90%">
-                <tr align="center">
-                    <td>
-                        ${map.pagingImg}
-                    </td>
-                    <td width="100">
+            <div class="bottom-menu" style="width: 90%; margin-top: 20px; text-align: center;">
+                <div class="pagination" style="margin-bottom: 10px;">
+                    ${map.pagingImg}
+                </div>
+                
+                <div class="search-area">
+                    <form method="get" style="display: inline;">
+                        <input type="hidden" name="category" value="${param.category}">
+                        <select name="searchField">
+                            <option value="title" ${map.searchField eq 'title' ? 'selected' : ''}>제목</option>
+                            <option value="content" ${map.searchField eq 'content' ? 'selected' : ''}>내용</option>
+                            <option value="nickname" ${map.searchField eq 'nickname' ? 'selected' : ''}>작성자</option>
+                        </select>
+                        <input type="text" name="searchWord" value="${map.searchWord}" />
+                        <input type="submit" value="검색하기" />
                         <button type="button" onclick="location.href='write.do';">글쓰기</button>
-                    </td>
-                </tr>
-            </table>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </body>

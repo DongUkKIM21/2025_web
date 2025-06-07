@@ -102,22 +102,23 @@ public class MemberController extends HttpServlet {
     private void login(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String method = req.getMethod();
         if ("GET".equalsIgnoreCase(method)) {
-            req.getRequestDispatcher("/WEB-INF/views/member/loginForm.jsp").forward(req, resp);
+            resp.sendRedirect(req.getContextPath() + "/board/list.do");
         } else { // POST
             String id = req.getParameter("id");
             String pass = req.getParameter("pass");
             MemberDO member = dao.getMember(id, pass);
+            HttpSession session = req.getSession();
 
             if (member != null) {
-                HttpSession session = req.getSession();
                 session.setAttribute("userId", member.getId());
                 session.setAttribute("userName", member.getName());
                 session.setAttribute("userNickname", member.getNickname());
                 session.setAttribute("userAdmin", member.getAdmin());
+                session.removeAttribute("loginError");
                 resp.sendRedirect(req.getContextPath() + "/board/list.do");
             } else {
-                req.setAttribute("loginError", "아이디 또는 비밀번호가 일치하지 않습니다.");
-                req.getRequestDispatcher("/WEB-INF/views/member/loginForm.jsp").forward(req, resp);
+                session.setAttribute("loginError", "아이디 또는 비밀번호가 일치하지 않습니다.");
+                resp.sendRedirect(req.getContextPath() + "/board/list.do");
             }
         }
     }
