@@ -70,9 +70,6 @@ public class MemberController extends HttpServlet {
             case "adminEdit.do":
                 adminEdit(req, resp);
                 break;
-            case "updateId.do":
-                updateId(req, resp);
-                break;
             case "updatePassword.do":
                 updatePassword(req, resp);
                 break;
@@ -84,9 +81,6 @@ public class MemberController extends HttpServlet {
                 break;
             case "updateEmail.do":
                 updateEmail(req, resp);
-                break;
-            case "adminUpdateId.do":
-                adminUpdateId(req, resp);
                 break;
             case "adminUpdatePassword.do":
                 adminUpdatePassword(req, resp);
@@ -186,7 +180,7 @@ public class MemberController extends HttpServlet {
         
         List<MemberDO> memberList = dao.selectMembers();
         req.setAttribute("memberList", memberList);
-        req.getRequestDispatcher("/WEB-INF/views/member/adminMemberList.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/adminMemberList.jsp").forward(req, resp);
     }
     
     private void adminEdit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -296,53 +290,17 @@ public class MemberController extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/member/editForm.jsp").forward(req, resp);
     }
 
-    private void updateId(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("userId") == null) {
-            resp.sendRedirect(req.getContextPath() + "/member/login.do");
-            return;
-        }
-        String currentId = (String) session.getAttribute("userId");
-        String newId = req.getParameter("id");
-
-        if (currentId.equals(newId)) {
-            resp.sendRedirect("edit.do?id=" + currentId);
-            return;
-        }
-
-        if (dao.checkIdExists(newId)) {
-            forwardUserError(req, resp, "id", "이미 사용 중인 아이디입니다.");
-            return;
-        }
-
-        boardDao.updateMemberIdInBoard(currentId, newId);
-        
-        MemberDO currentMember = dao.getMemberById(currentId);
-        currentMember.setId(newId);
-        currentMember.setPass("");
-
-        dao.adminUpdateMember(currentId, currentMember);
-
-        session.setAttribute("userId", newId);
-        resp.sendRedirect("edit.do?id=" + newId);
-    }
-
     private void updatePassword(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("userId") == null) {
             resp.sendRedirect(req.getContextPath() + "/member/login.do");
             return;
         }
-        String pass = req.getParameter("pass");
-        String passCheck = req.getParameter("pass_check");
         String userId = (String) session.getAttribute("userId");
-
-        if (pass == null || pass.isEmpty() || !pass.equals(passCheck)) {
+        if (!performPasswordUpdate(userId, req.getParameter("pass"), req.getParameter("pass_check"))) {
             forwardUserError(req, resp, "pass", "비밀번호가 일치하지 않습니다.");
             return;
         }
-
-        dao.updatePassword(userId, pass);
         resp.sendRedirect("edit.do?id=" + userId);
     }
 
@@ -352,10 +310,8 @@ public class MemberController extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/member/login.do");
             return;
         }
-        String newName = req.getParameter("name");
         String userId = (String) session.getAttribute("userId");
-        dao.updateName(userId, newName);
-        session.setAttribute("userName", newName);
+        performNameUpdate(userId, req.getParameter("name"), session);
         resp.sendRedirect("edit.do?id=" + userId);
     }
 
@@ -366,14 +322,10 @@ public class MemberController extends HttpServlet {
             return;
         }
         String userId = (String) session.getAttribute("userId");
-        String newNickname = req.getParameter("nickname");
-
-        if (dao.checkNicknameExistsForOther(newNickname, userId)) {
+        if (!performNicknameUpdate(userId, req.getParameter("nickname"), session)) {
             forwardUserError(req, resp, "nickname", "이미 사용 중인 닉네임입니다.");
             return;
         }
-        dao.updateNickname(userId, newNickname);
-        session.setAttribute("userNickname", newNickname);
         resp.sendRedirect("edit.do?id=" + userId);
     }
 
@@ -383,10 +335,39 @@ public class MemberController extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/member/login.do");
             return;
         }
-        String newEmail = req.getParameter("email");
         String userId = (String) session.getAttribute("userId");
-        dao.updateEmail(userId, newEmail);
+        performEmailUpdate(userId, req.getParameter("email"));
         resp.sendRedirect("edit.do?id=" + userId);
+    }
+
+    private boolean performPasswordUpdate(String userId, String pass, String passCheck) {
+        if (pass == null || pass.isEmpty() || !pass.equals(passCheck)) {
+            return false;
+        }
+        dao.updatePassword(userId, pass);
+        return true;
+    }
+
+    private void performNameUpdate(String userId, String newName, HttpSession session) {
+        dao.updateName(userId, newName);
+        if (session != null && session.getAttribute("userId") != null && session.getAttribute("userId").equals(userId)) {
+            session.setAttribute("userName", newName);
+        }
+    }
+
+    private boolean performNicknameUpdate(String userId, String newNickname, HttpSession session) {
+        if (dao.checkNicknameExistsForOther(newNickname, userId)) {
+            return false;
+        }
+        dao.updateNickname(userId, newNickname);
+        if (session != null && session.getAttribute("userId") != null && session.getAttribute("userId").equals(userId)) {
+            session.setAttribute("userNickname", newNickname);
+        }
+        return true;
+    }
+
+    private void performEmailUpdate(String userId, String newEmail) {
+        dao.updateEmail(userId, newEmail);
     }
 
     private void forwardUserError(HttpServletRequest req, HttpServletResponse resp, String section, String message) throws ServletException, IOException {
@@ -408,63 +389,33 @@ public class MemberController extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/member/adminEditForm.jsp").forward(req, resp);
     }
 
-    private void adminUpdateId(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
-        String originalId = req.getParameter("originalId");
-        String newId = req.getParameter("id");
-
-        if (dao.checkIdExists(newId)) {
-            adminForwardError(req, resp, originalId, "id", "이미 사용 중인 아이디입니다.");
-            return;
-        }
-
-        boardDao.updateMemberIdInBoard(originalId, newId);
-        
-        MemberDO member = dao.getMemberById(originalId);
-        member.setId(newId);
-        member.setPass("");
-
-        dao.adminUpdateMember(originalId, member);
-
-        resp.sendRedirect("adminEdit.do?id=" + newId);
-    }
-
     private void adminUpdatePassword(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String id = req.getParameter("id");
-        String pass = req.getParameter("pass");
-
-        if (pass == null || pass.trim().isEmpty()) {
+        if (!performPasswordUpdate(id, req.getParameter("pass"), req.getParameter("pass"))) { // 관리자는 비밀번호 확인 절차 없음
             adminForwardError(req, resp, id, "pass", "비밀번호를 입력해주세요.");
             return;
         }
-        
-        dao.updatePassword(id, pass);
         resp.sendRedirect("adminEdit.do?id=" + id);
     }
 
     private void adminUpdateName(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String id = req.getParameter("id");
-        String newName = req.getParameter("name");
-        dao.updateName(id, newName);
+        performNameUpdate(id, req.getParameter("name"), req.getSession(false));
         resp.sendRedirect("adminEdit.do?id=" + id);
     }
 
     private void adminUpdateNickname(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String id = req.getParameter("id");
-        String newNickname = req.getParameter("nickname");
-
-        if (dao.checkNicknameExistsForOther(newNickname, id)) {
+        if (!performNicknameUpdate(id, req.getParameter("nickname"), req.getSession(false))) {
             adminForwardError(req, resp, id, "nickname", "이미 사용 중인 닉네임입니다.");
             return;
         }
-
-        dao.updateNickname(id, newNickname);
         resp.sendRedirect("adminEdit.do?id=" + id);
     }
 
     private void adminUpdateEmail(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String id = req.getParameter("id");
-        String newEmail = req.getParameter("email");
-        dao.updateEmail(id, newEmail);
+        performEmailUpdate(id, req.getParameter("email"));
         resp.sendRedirect("adminEdit.do?id=" + id);
     }
 } 
