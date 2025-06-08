@@ -1,16 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<%@ page import="java.util.List" %>
-<%@ page import="com.example.project.dto.BoardDO" %>
-<%@ page import="java.util.Map" %>
-<%
-    List<BoardDO> boardList = (List<BoardDO>) request.getAttribute("boardList");
-    Map<String, Object> map = (Map<String, Object>) request.getAttribute("map");
-    String searchField = map.get("searchField") != null ? (String)map.get("searchField") : "";
-    String searchWord = map.get("searchWord") != null ? (String)map.get("searchWord") : "";
-    String currentCategory = request.getParameter("category");
-%>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -130,9 +121,9 @@
     <div class="container">
         <div class="main-content">
             <ul class="tabs">
-                <li><a href="list.do" class="<%= currentCategory == null ? "active" : "" %>">전체글</a></li>
-                <li><a href="list.do?category=자유게시판" class="<%= "자유게시판".equals(currentCategory) ? "active" : "" %>">자유게시판</a></li>
-                <li><a href="list.do?category=질문게시판" class="<%= "질문게시판".equals(currentCategory) ? "active" : "" %>">질문게시판</a></li>
+                <li><a href="list.do" class="${empty param.category ? 'active' : ''}">전체글</a></li>
+                <li><a href="list.do?category=자유게시판" class="${param.category == '자유게시판' ? 'active' : ''}">자유게시판</a></li>
+                <li><a href="list.do?category=질문게시판" class="${param.category == '질문게시판' ? 'active' : ''}">질문게시판</a></li>
             </ul>
 
             <div class="board-controls">

@@ -1,19 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.List" %>
-<%@ page import="com.example.project.dto.FileDO" %>
-<%@ page import="com.example.project.dto.BoardDO" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<%
-    BoardDO dto = (BoardDO) request.getAttribute("dto");
-    List<FileDO> fileList = (List<FileDO>) request.getAttribute("fileList");
-    String userId = session.getAttribute("userId") != null ? (String)session.getAttribute("userId") : "";
-    Object userAdminObj = session.getAttribute("userAdmin");
-    int userAdmin = 0;
-    if (userAdminObj != null) {
-        userAdmin = (Integer) userAdminObj;
-    }
-%>
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>

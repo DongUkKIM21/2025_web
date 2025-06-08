@@ -1,12 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.example.project.dto.BoardDO" %>
-<%@ page import="com.example.project.dto.FileDO" %>
-<%@ page import="java.util.List" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%
-    BoardDO dto = (BoardDO) request.getAttribute("dto");
-    List<FileDO> fileList = (List<FileDO>) request.getAttribute("fileList");
-%>
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>

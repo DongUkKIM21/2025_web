@@ -136,8 +136,8 @@
         }
 
         window.onload = function() {
-            const errorSection = "${errorSection}";
-            const errorMessage = "${errorMessage}";
+            const errorSection = '${errorSection}';
+            const errorMessage = '${errorMessage}';
 
             if (errorSection && errorMessage) {
                 toggleEdit(errorSection);

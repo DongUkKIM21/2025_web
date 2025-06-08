@@ -96,4 +96,45 @@ public class CommentDAO {
         }
         return comments;
     }
+
+    /**
+     * 특정 회원이 작성한 모든 댓글 목록 조회
+     */
+    public List<CommentDO> selectCommentsByMemberId(String memberId) {
+        List<CommentDO> comments = new ArrayList<>();
+        String sql = "SELECT * FROM comment WHERE id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, memberId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    CommentDO dto = new CommentDO();
+                    dto.setCno(rs.getInt("cno"));
+                    dto.setBno(rs.getInt("bno"));
+                    dto.setId(rs.getString("id"));
+                    dto.setNickname(rs.getString("nickname"));
+                    dto.setContent(rs.getString("content"));
+                    dto.setPostdate(rs.getTimestamp("postdate"));
+                    comments.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return comments;
+    }
+
+    /**
+     * 특정 회원이 작성한 모든 댓글 삭제
+     */
+    public void deleteCommentsByMemberId(String memberId) {
+        String sql = "DELETE FROM comment WHERE id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, memberId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 } 

@@ -62,27 +62,15 @@
 </style>
 </head>
 <body>
-<div class="sidebar">
-    <h1 class="sidebar-header">서비스 관리자</h1>
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a class="nav-link active" href="<c:url value="/board/management.do"/>">게시물 관리</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="<c:url value="/board/commentManagement.do"/>">댓글 관리</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="<c:url value="/member/list.do"/>">회원 관리</a>
-        </li>
-    </ul>
-</div>
+<jsp:include page="admin_sidebar.jsp" />
 
 <div class="main-content">
     <div class="container-fluid">
         <h2>게시물 관리</h2>
         <div class="card">
-            <div class="card-header">
-                게시물 관리 대시보드
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>게시물 관리 대시보드</span>
+                <a href="<c:url value='/board/list.do'/>" class="btn btn-outline-secondary btn-sm">메인 게시판으로 돌아가기</a>
             </div>
             <div class="card-body">
                 <table id="boardTable" class="table table-striped" style="width:100%">
@@ -120,7 +108,6 @@
                         </c:forEach>
                     </tbody>
                 </table>
-                 <a href="<c:url value="/board/list.do"/>" class="btn btn-secondary mt-3">메인 게시판으로 돌아가기</a>
             </div>
         </div>
     </div>

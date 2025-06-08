@@ -441,4 +441,29 @@ public class BoardDAO {
         }
         return bbs;
     }
+
+    /**
+     * 특정 회원이 작성한 모든 게시물 목록 조회
+     */
+    public List<BoardDO> selectPostsByMemberId(String memberId) {
+        List<BoardDO> postList = new ArrayList<>();
+        String sql = "SELECT * FROM board WHERE id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, memberId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while(rs.next()) {
+                    BoardDO dto = new BoardDO();
+                    dto.setNum(rs.getInt("num"));
+                    dto.setTitle(rs.getString("title"));
+                    dto.setId(rs.getString("id"));
+                    // 필요한 다른 필드들도 여기서 채울 수 있습니다.
+                    postList.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return postList;
+    }
 } 

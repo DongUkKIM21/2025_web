@@ -15,40 +15,68 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.css">
 
 <style>
-    body { display: flex; background-color: #f4f7f6; }
-    .sidebar { width: 260px; background-color: #212529; color: white; min-height: 100vh; padding: 15px; }
-    .sidebar .sidebar-header { font-size: 1.5rem; font-weight: bold; text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #444; }
-    .sidebar .nav-link { color: #adb5bd; font-size: 1rem; padding: 10px 15px; border-radius: 5px; }
-    .sidebar .nav-link.active { background-color: #0d6efd; color: white; }
-    .sidebar .nav-link:hover { background-color: #343a40; color: white; }
-    .main-content { flex-grow: 1; padding: 25px; }
-    .card-header { font-weight: bold; }
-    .dt-buttons .btn-secondary { background-color: #6c757d; border-color: #6c757d; }
-    .comment-content { max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    body {
+        display: flex;
+        background-color: #f4f7f6;
+    }
+    .sidebar {
+        width: 260px;
+        background-color: #212529;
+        color: white;
+        min-height: 100vh;
+        padding: 15px;
+    }
+    .sidebar .sidebar-header {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #444;
+    }
+    .sidebar .nav-link {
+        color: #adb5bd;
+        font-size: 1rem;
+        padding: 10px 15px;
+        border-radius: 5px;
+    }
+    .sidebar .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .sidebar .nav-link:hover {
+        background-color: #343a40;
+        color: white;
+    }
+    .main-content {
+        flex-grow: 1;
+        padding: 25px;
+    }
+    .card-header {
+        font-weight: bold;
+    }
+    .dt-buttons .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .comment-content {
+        max-width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 </style>
 </head>
 <body>
-<div class="sidebar">
-    <h1 class="sidebar-header">서비스 관리자</h1>
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a class="nav-link" href="<c:url value="/board/management.do"/>">게시물 관리</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link active" href="<c:url value="/board/commentManagement.do"/>">댓글 관리</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="<c:url value="/member/list.do"/>">회원 관리</a>
-        </li>
-    </ul>
-</div>
+<jsp:include page="admin_sidebar.jsp" />
 
 <div class="main-content">
     <div class="container-fluid">
         <h2>댓글 관리</h2>
         <div class="card">
-            <div class="card-header">
-                댓글 관리 대시보드
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>댓글 관리 대시보드</span>
+                <a href="<c:url value='/board/list.do'/>" class="btn btn-outline-secondary btn-sm">메인 게시판으로 돌아가기</a>
             </div>
             <div class="card-body">
                 <table id="commentTable" class="table table-striped" style="width:100%">
@@ -75,7 +103,7 @@
                                     </c:if>
                                 </td>
                                 <td>
-                                    <a href="#" onclick="confirmDelete('${comment.cno}', '${comment.bno}')" class="btn btn-danger btn-sm">삭제</a>
+                                    <a href="#" onclick="confirmCommentDelete('${comment.cno}', '${comment.bno}')" class="btn btn-danger btn-sm">삭제</a>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -90,7 +118,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
 <!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables JS -->
+<!-- DataTables & Extensions JS -->
 <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
 <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.js"></script>
@@ -103,11 +131,9 @@
 <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.colVis.min.js"></script>
 
 <script>
-    function confirmDelete(cno, bno) {
+    function confirmCommentDelete(cno, bno) {
         if (confirm("댓글 ID " + cno + " (을)를 정말로 삭제하시겠습니까?")) {
-            // 삭제 후 현재 댓글 관리 페이지로 돌아오도록 URL을 구성합니다.
-            const redirectUrl = encodeURIComponent(window.location.href);
-            location.href = `<c:url value="/board/deleteComment.do?cno="/>${cno}&bno=${bno}&redirect=admin`;
+            location.href = '<c:url value="/board/deleteComment.do"/>?cno=' + cno + '&bno=' + bno + '&redirect=admin';
         }
     }
 

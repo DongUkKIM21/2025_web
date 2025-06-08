@@ -15,74 +15,27 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.css">
 
 <style>
-    body {
-        display: flex;
-        background-color: #f4f7f6;
-    }
-    .sidebar {
-        width: 260px;
-        background-color: #212529;
-        color: white;
-        min-height: 100vh;
-        padding: 15px;
-    }
-    .sidebar .sidebar-header {
-        font-size: 1.5rem;
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #444;
-    }
-    .sidebar .nav-link {
-        color: #adb5bd;
-        font-size: 1rem;
-        padding: 10px 15px;
-        border-radius: 5px;
-    }
-    .sidebar .nav-link.active {
-        background-color: #0d6efd;
-        color: white;
-    }
-    .sidebar .nav-link:hover {
-        background-color: #343a40;
-        color: white;
-    }
-    .main-content {
-        flex-grow: 1;
-        padding: 25px;
-    }
-    .card-header {
-        font-weight: bold;
-    }
-    .dt-buttons .btn-secondary {
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
+    body { display: flex; background-color: #f4f7f6; }
+    .sidebar { width: 260px; background-color: #212529; color: white; min-height: 100vh; padding: 15px; }
+    .sidebar .sidebar-header { font-size: 1.5rem; font-weight: bold; text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #444; }
+    .sidebar .nav-link { color: #adb5bd; font-size: 1rem; padding: 10px 15px; border-radius: 5px; }
+    .sidebar .nav-link.active { background-color: #0d6efd; color: white; }
+    .sidebar .nav-link:hover { background-color: #343a40; color: white; }
+    .main-content { flex-grow: 1; padding: 25px; }
+    .card-header { font-weight: bold; }
+    .dt-buttons .btn-secondary { background-color: #6c757d; border-color: #6c757d; }
 </style>
 </head>
 <body>
-<div class="sidebar">
-    <h1 class="sidebar-header">서비스 관리자</h1>
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a class="nav-link" href="<c:url value="/board/management.do"/>">게시물 관리</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="<c:url value="/board/commentManagement.do"/>">댓글 관리</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link active" href="<c:url value="/member/list.do"/>">회원 관리</a>
-        </li>
-    </ul>
-</div>
+<jsp:include page="../admin/admin_sidebar.jsp" />
 
 <div class="main-content">
     <div class="container-fluid">
         <h2>회원 관리</h2>
         <div class="card">
-            <div class="card-header">
-                회원 관리 게시판
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>회원 관리 대시보드</span>
+                <a href="<c:url value='/board/list.do'/>" class="btn btn-outline-secondary btn-sm">메인 게시판으로 돌아가기</a>
             </div>
             <div class="card-body">
                 <table id="memberTable" class="table table-striped" style="width:100%">
@@ -118,7 +71,6 @@
                         </c:forEach>
                     </tbody>
                 </table>
-                 <a href="<c:url value="/board/list.do"/>" class="btn btn-secondary mt-3">게시판으로 돌아가기</a>
             </div>
         </div>
     </div>

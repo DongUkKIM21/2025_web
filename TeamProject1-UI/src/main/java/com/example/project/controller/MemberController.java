@@ -4,8 +4,13 @@ import java.io.IOException;
 import java.util.List;
 
 import com.example.project.dao.BoardDAO;
+import com.example.project.dao.CommentDAO;
 import com.example.project.dao.MemberDAO;
+import com.example.project.dto.BoardDO;
+import com.example.project.dto.CommentDO;
+import com.example.project.dto.FileDO;
 import com.example.project.dto.MemberDO;
+import com.example.project.util.FileUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -19,11 +24,13 @@ public class MemberController extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private MemberDAO dao;
     private BoardDAO boardDao;
+    private CommentDAO commentDao;
 
     @Override
     public void init() throws ServletException {
         dao = new MemberDAO();
         boardDao = new BoardDAO();
+        commentDao = new CommentDAO();
     }
 
     @Override
@@ -228,14 +235,47 @@ public class MemberController extends HttpServlet {
             return;
         }
         
-        boardDao.deletePostsByMemberId(idToDelete);
-        dao.deleteMember(idToDelete);
+        // 1. 회원이 작성한 모든 게시물 목록을 조회하여 첨부파일 삭제
+        List<BoardDO> postsToDelete = boardDao.selectPostsByMemberId(idToDelete);
+        for (BoardDO post : postsToDelete) {
+            List<FileDO> filesToDelete = boardDao.selectFiles(String.valueOf(post.getNum()));
+            for (FileDO file : filesToDelete) {
+                FileUtil.deleteFile(req, file.getStored_file_name());
+            }
+        }
 
-        if (loginUserId.equals(idToDelete)) {
-            session.invalidate();
-            resp.sendRedirect(req.getContextPath() + "/member/login.do");
+        // 2. 회원이 작성한 모든 댓글 삭제
+        commentDao.deleteCommentsByMemberId(idToDelete);
+        
+        // 3. 회원이 작성한 모든 게시물 삭제
+        boardDao.deletePostsByMemberId(idToDelete);
+        
+        // 4. 회원 삭제
+        int result = dao.deleteMember(idToDelete);
+        
+        if (loginUserAdmin == 1) {
+            if (result > 0) {
+                // 관리자가 다른 회원을 삭제한 경우
+                if (!loginUserId.equals(idToDelete)) {
+                    resp.sendRedirect(req.getContextPath() + "/member/list.do");
+                } else {
+                    // 관리자 스스로 탈퇴한 경우
+                    session.invalidate();
+                    resp.sendRedirect(req.getContextPath() + "/board/list.do");
+                }
+            } else {
+                req.setAttribute("errorMessage", "회원 삭제에 실패했습니다.");
+                req.getRequestDispatcher("/member/list.do").forward(req, resp);
+            }
         } else {
-            resp.sendRedirect(req.getContextPath() + "/member/list.do");
+            // 일반 사용자가 탈퇴한 경우
+            if (result > 0) {
+                session.invalidate();
+                resp.sendRedirect(req.getContextPath() + "/board/list.do");
+            } else {
+                req.setAttribute("errorMessage", "회원 탈퇴에 실패했습니다.");
+                req.getRequestDispatcher("/member/edit.do?id=" + idToDelete).forward(req, resp);
+            }
         }
     }
 
